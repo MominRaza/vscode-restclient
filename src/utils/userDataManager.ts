@@ -85,11 +85,25 @@ export class UserDataManager {
     }
 
     public static getEnvironment() {
-        return JsonFileUtility.deserializeFromFile(this.environmentFilePath);
+        return this.getEnvironmentData().then(data => data.selectedEnvironment);
     }
 
     public static setEnvironment(item: unknown) {
-        return JsonFileUtility.serializeToFile(this.environmentFilePath, item);
+        return this.getEnvironmentData().then(data => JsonFileUtility.serializeToFile(this.environmentFilePath, {
+            selectedEnvironment: item,
+            sharedEnvironmentVariables: data.sharedEnvironmentVariables
+        }));
+    }
+
+    public static async getSharedEnvironmentVariables(): Promise<{ [key: string]: string }> {
+        const data = await this.getEnvironmentData();
+        return data.sharedEnvironmentVariables;
+    }
+
+    public static async setSharedEnvironmentVariable(name: string, value: string): Promise<void> {
+        const data = await this.getEnvironmentData();
+        data.sharedEnvironmentVariables[name] = value;
+        await JsonFileUtility.serializeToFile(this.environmentFilePath, data);
     }
 
     public static getResponseSaveFilePath(fileName: string) {
@@ -98,5 +112,23 @@ export class UserDataManager {
 
     public static getResponseBodySaveFilePath(fileName: string) {
         return path.join(this.responseBodySaveFolderPath, fileName);
+    }
+
+    private static async getEnvironmentData(): Promise<{ selectedEnvironment: unknown, sharedEnvironmentVariables: { [key: string]: string } }> {
+        const environment = await JsonFileUtility.deserializeFromFile(this.environmentFilePath);
+        if (environment
+            && typeof environment === 'object'
+            && 'sharedEnvironmentVariables' in environment) {
+            const obj = environment as { selectedEnvironment?: unknown, sharedEnvironmentVariables?: { [key: string]: string } };
+            return {
+                selectedEnvironment: obj.selectedEnvironment,
+                sharedEnvironmentVariables: obj.sharedEnvironmentVariables || {}
+            };
+        }
+
+        return {
+            selectedEnvironment: environment,
+            sharedEnvironmentVariables: {}
+        };
     }
 }

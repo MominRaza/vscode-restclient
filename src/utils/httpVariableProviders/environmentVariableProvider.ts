@@ -3,6 +3,7 @@ import { EnvironmentController } from '../../controllers/environmentController';
 import { SystemSettings } from '../../models/configurationSettings';
 import { ResolveErrorMessage } from '../../models/httpVariableResolveResult';
 import { VariableType } from '../../models/variableType';
+import { UserDataManager } from '../userDataManager';
 import { HttpVariable, HttpVariableProvider } from './httpVariableProvider';
 
 export class EnvironmentVariableProvider implements HttpVariableProvider {
@@ -42,14 +43,21 @@ export class EnvironmentVariableProvider implements HttpVariableProvider {
         return Object.keys(variables).map(key => ({ name: key, value: variables[key]}));
     }
 
+    public async saveToShared(name: string, value: string): Promise<void> {
+        await UserDataManager.setSharedEnvironmentVariable(name, value);
+    }
+
     private async getAvailableVariables(): Promise<{ [key: string]: string }> {
         let { name: environmentName } = await EnvironmentController.getCurrentEnvironment();
         if (environmentName === Constants.NoEnvironmentSelectedName) {
             environmentName = EnvironmentController.sharedEnvironmentName;
         }
         const variables = this._settings.environmentVariables;
-        const currentEnvironmentVariables = variables[environmentName];
-        const sharedEnvironmentVariables = variables[EnvironmentController.sharedEnvironmentName];
+        const currentEnvironmentVariables = { ...(variables[environmentName] || {}) };
+        const sharedEnvironmentVariables = {
+            ...(variables[EnvironmentController.sharedEnvironmentName] || {}),
+            ...(await UserDataManager.getSharedEnvironmentVariables())
+        };
 
         // Resolve mappings from shared environment
         this.mapEnvironmentVariables('shared', sharedEnvironmentVariables, sharedEnvironmentVariables);

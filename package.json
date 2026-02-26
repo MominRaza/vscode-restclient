@@ -1,9 +1,9 @@
 {
   "name": "rest-client",
   "displayName": "REST Client",
-  "description": "REST Client for Visual Studio Code",
+  "description": "REST Client for Visual Studio Code (maintained fork)",
   "version": "0.26.0",
-  "publisher": "humao",
+  "publisher": "MominRaza",
   "author": {
     "name": "Huachao Mao",
     "email": "huachaomao@gmail.com"
@@ -15,13 +15,12 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Huachao/vscode-restclient/issues",
-    "email": "huachaomao@gmail.com"
+    "url": "https://github.com/MominRaza/vscode-restclient/issues"
   },
-  "homepage": "https://github.com/Huachao/vscode-restclient/blob/master/README.md",
+  "homepage": "https://github.com/MominRaza/vscode-restclient/blob/main/README.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Huachao/vscode-restclient.git"
+    "url": "https://github.com/MominRaza/vscode-restclient.git"
   },
   "engines": {
     "vscode": "^1.81.0"

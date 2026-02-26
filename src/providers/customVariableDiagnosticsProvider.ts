@@ -205,6 +205,18 @@ export class CustomVariableDiagnosticsProvider {
             const directiveText = matched[1].trim();
             const assignment = Selector.parseSetAssignment(directiveText);
             if (!assignment) {
+                const directiveStart = line.search(/@set\s+/i);
+                const range = new Range(
+                    new Position(lineNumber, directiveStart >= 0 ? directiveStart : 0),
+                    new Position(lineNumber, line.length)
+                );
+                diagnostics.push(
+                    new Diagnostic(
+                        range,
+                        'Malformed @set directive. Expected syntax: @set <targetName> = <response.headers.*|response.body.*>',
+                        DiagnosticSeverity.Error
+                    )
+                );
                 return;
             }
 

@@ -12,7 +12,6 @@ import {
 } from 'vscode';
 import * as Constants from '../common/constants';
 import { EnvironmentController } from '../controllers/environmentController';
-import { SystemSettings } from '../models/configurationSettings';
 import { DocumentCache } from '../models/documentCache';
 import { ResolveState } from '../models/httpVariableResolveResult';
 import { VariableType } from '../models/variableType';
@@ -188,12 +187,14 @@ export class CustomVariableDiagnosticsProvider {
 
     private findSetDiagnostics(document: TextDocument): Diagnostic[] {
         const diagnostics: Diagnostic[] = [];
+        const restClientConfig = workspace.getConfiguration('rest-client', document.uri);
+        const environmentVariables =
+            restClientConfig.get<Record<string, Record<string, unknown>>>('environmentVariables') ??
+            {};
         const sharedVariables =
-            SystemSettings.Instance.environmentVariables[
-                EnvironmentController.sharedEnvironmentName
-            ] ?? {};
+            environmentVariables[EnvironmentController.sharedEnvironmentName] ?? {};
         const lines = document.getText().split(Constants.LineSplitterRegex);
-        const pattern = /^\s*(?:#|\/{2})\s*@set\s+(.*?)\s*$/;
+        const pattern = /^\s*(?:#|\/{2})\s*@set\s+(.*?)\s*$/i;
 
         lines.forEach((line, lineNumber) => {
             const matched = line.match(pattern);
@@ -306,8 +307,8 @@ export class CustomVariableDiagnosticsProvider {
     ): boolean {
         const { name, begin, end } = variable;
         return (
-            defs.get(name)?.some(({ name, range: [rangeStart, rangeEnd] }) => {
-                return name === name && rangeStart <= begin.line && end.line <= rangeEnd;
+            defs.get(name)?.some(({ name: defName, range: [rangeStart, rangeEnd] }) => {
+                return defName === name && rangeStart <= begin.line && end.line <= rangeEnd;
             }) || false
         );
     }

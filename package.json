@@ -1,8 +1,8 @@
 {
-  "name": "rest-client",
-  "displayName": "REST Client",
+  "name": "rest-client-maintained",
+  "displayName": "REST Client (Maintained)",
   "description": "REST Client for Visual Studio Code (maintained fork)",
-  "version": "0.26.0",
+  "version": "0.25.1",
   "publisher": "MominRaza",
   "author": {
     "name": "Huachao Mao",
@@ -714,7 +714,8 @@
     "@types/mocha": "^5.2.7",
     "@types/node": "^18.19.130",
     "@types/node-fetch": "^2.6.13",
-    "@types/vscode": "^1.110.0",
+    "@types/vscode": "^1.81.0",
+    "@vscode/vsce": "^3.7.1",
     "mocha": "^10.8.2",
     "oxfmt": "^0.41.0",
     "oxlint": "^1.56.0",

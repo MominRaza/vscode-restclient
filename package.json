@@ -2,7 +2,7 @@
   "name": "rest-client-maintained",
   "displayName": "REST Client (Maintained)",
   "description": "REST Client for Visual Studio Code (maintained fork)",
-  "version": "0.25.1",
+  "version": "0.26.0",
   "publisher": "MominRaza",
   "author": {
     "name": "Huachao Mao",

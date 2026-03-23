@@ -1,9 +1,9 @@
 {
-  "name": "rest-client",
-  "displayName": "REST Client",
-  "description": "REST Client for Visual Studio Code",
-  "version": "0.26.0",
-  "publisher": "humao",
+  "name": "rest-client-maintained",
+  "displayName": "REST Client (Maintained)",
+  "description": "REST Client for Visual Studio Code (maintained fork)",
+  "version": "0.25.1",
+  "publisher": "MominRaza",
   "author": {
     "name": "Huachao Mao",
     "email": "huachaomao@gmail.com"
@@ -15,13 +15,12 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Huachao/vscode-restclient/issues",
-    "email": "huachaomao@gmail.com"
+    "url": "https://github.com/MominRaza/vscode-restclient/issues"
   },
-  "homepage": "https://github.com/Huachao/vscode-restclient/blob/master/README.md",
+  "homepage": "https://github.com/MominRaza/vscode-restclient/blob/main/README.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Huachao/vscode-restclient.git"
+    "url": "https://github.com/MominRaza/vscode-restclient.git"
   },
   "engines": {
     "vscode": "^1.81.0"
@@ -715,26 +714,27 @@
     "@types/mocha": "^5.2.7",
     "@types/node": "^18.19.130",
     "@types/node-fetch": "^2.6.13",
-    "@types/vscode": "^1.109.0",
+    "@types/vscode": "^1.81.0",
+    "@vscode/vsce": "^3.7.1",
     "mocha": "^10.8.2",
-    "oxfmt": "^0.35.0",
-    "oxlint": "^1.50.0",
-    "oxlint-tsgolint": "^0.15.0",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "oxlint-tsgolint": "^0.17.1",
     "ts-loader": "^7.0.5",
     "typescript": "^5.9.3",
-    "webpack": "^5.105.2",
+    "webpack": "^5.105.4",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "@szmarczak/http-timer": "^5.0.1",
     "adal-node": "^0.2.4",
     "applicationinsights": "^1.8.10",
-    "aws-amplify": "^5.3.31",
+    "aws-amplify": "^5.3.33",
     "aws4": "^1.13.2",
     "code-highlight-linenums": "^0.2.1",
     "combined-stream": "^1.0.8",
     "content-disposition": "^0.5.4",
-    "dayjs": "^1.11.19",
+    "dayjs": "^1.11.20",
     "dotenv": "^8.6.0",
     "encodeurl": "^1.0.2",
     "filesize": "^3.6.1",
@@ -754,7 +754,7 @@
     "node-jws": "^0.1.4",
     "open": "^10.2.0",
     "pretty-data": "^0.40.0",
-    "sanitize-html": "^2.17.1",
+    "sanitize-html": "^2.17.2",
     "tough-cookie": "^4.1.4",
     "tough-cookie-file-store": "^2.0.3",
     "uuid": "^3.4.0",

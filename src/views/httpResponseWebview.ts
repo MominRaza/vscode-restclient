@@ -69,7 +69,7 @@ export class HttpResponseWebview extends BaseWebview {
         this.context.subscriptions.push(commands.registerCommand('rest-client.save-response-body', this.saveBody, this));
     }
 
-    public async render(response: HttpResponse, column: ViewColumn) {
+    public async render(response: HttpResponse, column: ViewColumn): Promise<WebviewPanel> {
         let panel: WebviewPanel;
         if (this.settings.showResponseInDifferentTab || this.panels.length === 0) {
             panel = window.createWebviewPanel(
@@ -116,14 +116,15 @@ export class HttpResponseWebview extends BaseWebview {
 
         panel.webview.html = this.getHtmlForWebview(panel, response);
 
-        this.setPreviewActiveContext(this.settings.previewResponsePanelTakeFocus);
-
         panel.reveal(column, !this.settings.previewResponsePanelTakeFocus);
 
         this.panelResponses.set(panel, response);
         this.activePanel = panel;
+        this.setPreviewActiveContext(panel.active);
 
         this.setIsHTMLResponse(this.activeResponse);
+
+        return panel;
     }
 
     public dispose() {

@@ -1,4 +1,12 @@
-import { ExtensionContext, Range, TextDocument, ViewColumn, window } from 'vscode';
+import {
+    commands,
+    ExtensionContext,
+    Range,
+    TextDocument,
+    TextEditor,
+    ViewColumn,
+    window,
+} from 'vscode';
 import Logger from '../logger';
 import {
     IRestClientSettings,
@@ -23,12 +31,22 @@ import { getCurrentTextDocument } from '../utils/workspaceUtility';
 import { HttpResponseTextDocumentView } from '../views/httpResponseTextDocumentView';
 import { HttpResponseWebview } from '../views/httpResponseWebview';
 
+type RequestOrigin = {
+    readonly document: TextDocument;
+    readonly viewColumn?: ViewColumn;
+};
+
+type RequestExecutionError = {
+    code?: string;
+    message: string;
+};
+
 export class RequestController {
     private _requestStatusEntry: RequestStatusEntry;
     private _httpClient: HttpClient;
     private _webview: HttpResponseWebview;
     private _textDocumentView: HttpResponseTextDocumentView;
-    private _lastRequestSettingTuple: [HttpRequest, IRestClientSettings];
+    private _lastRequestSettingTuple?: [HttpRequest, IRestClientSettings];
     private _lastPendingRequest?: HttpRequest;
 
     public constructor(context: ExtensionContext) {
@@ -76,7 +94,13 @@ export class RequestController {
             settings
         ).parseHttpRequest(name);
 
-        await this.runCore(httpRequest, settings, document, metadatas);
+        await this.runCore(
+            httpRequest,
+            settings,
+            document,
+            metadatas,
+            this.createRequestOrigin(editor, document)
+        );
     }
 
     @trace('Rerun Request')
@@ -86,9 +110,12 @@ export class RequestController {
         }
 
         const [request, settings] = this._lastRequestSettingTuple;
+        const editor = window.activeTextEditor;
+        const document = getCurrentTextDocument();
+        const origin = editor && document ? this.createRequestOrigin(editor, document) : undefined;
 
         // TODO: recover from last request settings
-        await this.runCore(request, settings);
+        await this.runCore(request, settings, undefined, undefined, origin);
     }
 
     @trace('Cancel Request')
@@ -101,7 +128,8 @@ export class RequestController {
         try {
             await this._httpClient.clearCookies();
         } catch (error) {
-            window.showErrorMessage(`Error clearing cookies:${error?.message}`);
+            const message = error instanceof Error ? error.message : String(error);
+            window.showErrorMessage(`Error clearing cookies:${message}`);
         }
     }
 
@@ -109,7 +137,8 @@ export class RequestController {
         httpRequest: HttpRequest,
         settings: IRestClientSettings,
         document?: TextDocument,
-        metadatas?: Map<RequestMetadata, string | undefined>
+        metadatas?: Map<RequestMetadata, string | undefined>,
+        origin?: RequestOrigin
     ) {
         // clear status bar
         this._requestStatusEntry.update({ state: RequestState.Pending });
@@ -138,19 +167,25 @@ export class RequestController {
             }
 
             try {
-                const activeColumn = window.activeTextEditor!.viewColumn;
-                const previewColumn =
-                    settings.previewColumn === ViewColumn.Active
-                        ? activeColumn
-                        : (((activeColumn as number) + 1) as ViewColumn);
+                const previewColumn = this.getPreviewColumn(settings, origin);
                 if (settings.previewResponseInUntitledDocument) {
-                    this._textDocumentView.render(response, previewColumn);
+                    const responseEditor = await this._textDocumentView.render(
+                        response,
+                        previewColumn
+                    );
+                    if (settings.previewResponsePanelTakeFocus) {
+                        await this.lockResponseTextDocument(responseEditor);
+                    }
                 } else if (previewColumn) {
-                    this._webview.render(response, previewColumn);
+                    await this._webview.render(response, previewColumn);
+                    if (settings.previewResponsePanelTakeFocus) {
+                        await commands.executeCommand('workbench.action.lockEditorGroup');
+                    }
                 }
             } catch (reason) {
                 Logger.error('Unable to preview response:', reason);
-                window.showErrorMessage(reason);
+                const message = reason instanceof Error ? reason.message : String(reason);
+                window.showErrorMessage(message);
             }
 
             // persist to history json file
@@ -163,16 +198,18 @@ export class RequestController {
                 return;
             }
 
-            if (error.code === 'ETIMEDOUT') {
-                error.message = `Request timed out. Double-check your network connection and/or raise the timeout duration (currently set to ${settings.timeoutInMilliseconds}ms) as needed: 'rest-client.timeoutinmilliseconds'. Details: ${error}.`;
-            } else if (error.code === 'ECONNREFUSED') {
-                error.message = `The connection was rejected. Either the requested service isn’t running on the requested server/port, the proxy settings in vscode are misconfigured, or a firewall is blocking requests. Details: ${error}.`;
-            } else if (error.code === 'ENETUNREACH') {
-                error.message = `You don't seem to be connected to a network. Details: ${error}`;
+            const requestError = this.toRequestExecutionError(error);
+
+            if (requestError.code === 'ETIMEDOUT') {
+                requestError.message = `Request timed out. Double-check your network connection and/or raise the timeout duration (currently set to ${settings.timeoutInMilliseconds}ms) as needed: 'rest-client.timeoutinmilliseconds'. Details: ${String(error)}.`;
+            } else if (requestError.code === 'ECONNREFUSED') {
+                requestError.message = `The connection was rejected. Either the requested service isn’t running on the requested server/port, the proxy settings in vscode are misconfigured, or a firewall is blocking requests. Details: ${String(error)}.`;
+            } else if (requestError.code === 'ENETUNREACH') {
+                requestError.message = `You don't seem to be connected to a network. Details: ${String(error)}`;
             }
             this._requestStatusEntry.update({ state: RequestState.Error });
-            Logger.error('Failed to send request:', error);
-            window.showErrorMessage(error.message);
+            Logger.error('Failed to send request:', requestError);
+            window.showErrorMessage(requestError.message);
         } finally {
             if (this._lastPendingRequest === httpRequest) {
                 this._lastPendingRequest = undefined;
@@ -183,6 +220,44 @@ export class RequestController {
     public dispose() {
         this._requestStatusEntry.dispose();
         this._webview.dispose();
+    }
+
+    private createRequestOrigin(editor: TextEditor, document: TextDocument): RequestOrigin {
+        return {
+            document,
+            viewColumn: editor.viewColumn,
+        };
+    }
+
+    private getPreviewColumn(settings: IRestClientSettings, origin?: RequestOrigin): ViewColumn {
+        const originColumn = origin?.viewColumn ?? window.activeTextEditor?.viewColumn;
+        if (settings.previewColumn === ViewColumn.Active) {
+            return originColumn ?? ViewColumn.Active;
+        }
+
+        return originColumn ? (((originColumn as number) + 1) as ViewColumn) : ViewColumn.Beside;
+    }
+
+    private async lockResponseTextDocument(editor: TextEditor) {
+        await commands.executeCommand('workbench.action.lockEditorGroup', editor.document.uri);
+    }
+
+    private toRequestExecutionError(error: unknown): RequestExecutionError {
+        if (error instanceof Error) {
+            return error as RequestExecutionError;
+        }
+
+        if (typeof error === 'object' && error !== null) {
+            const requestError = error as Partial<RequestExecutionError>;
+            return {
+                code: requestError.code,
+                message: requestError.message ?? JSON.stringify(error),
+            };
+        }
+
+        return {
+            message: String(error),
+        };
     }
 
     private async applySetMetadata(

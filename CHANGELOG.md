@@ -1,7 +1,10 @@
+## 0.26.1 (2026/03/31)
+
+- **Feature**: [Add response editor locking for `rest-client.previewResponsePanelTakeFocus`](https://github.com/MominRaza/vscode-restclient/pull/4)
+
 ## 0.26.0 (2026/03/23)
 
-- **Feature**: Add support for `@set` directives for runtime shared variables, including diagnostics, completions, syntax highlighting, and variable resolution.
-
+- **Feature**: [Add `@set` directive for cross-file shared runtime variables](https://github.com/Huachao/vscode-restclient/pull/1422)
 
 ## 0.25.1 (2022/07/06)
 * __Bug Fix__: [Fix request parse error for curl request without body](https://github.com/Huachao/vscode-restclient/issues/1026)

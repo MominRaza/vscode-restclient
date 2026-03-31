@@ -626,7 +626,7 @@
           "type": "boolean",
           "default": true,
           "scope": "resource",
-          "description": "Preview response panel will take focus after receiving response."
+          "description": "Controls whether the response preview remains focused after it is shown. When enabled, the response editor group is locked so later file opens do not replace the preview."
         },
         "rest-client.formParamEncodingStrategy": {
           "type": "string",

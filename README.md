@@ -7,6 +7,7 @@ REST Client allows you to send HTTP request and view the response in Visual Stud
 This fork keeps the original REST Client behavior and UX intact, while adding small, backward-compatible improvements.
 
 - Added `@set` directive support for cross-file shared runtime variables. See [Runtime Shared Variables](#runtime-shared-variables).
+- Added response editor locking when `rest-client.previewResponsePanelTakeFocus` is enabled.
 
 ## Main Features
 * Send/Cancel/Rerun __HTTP request__ in editor and view response in a separate pane with syntax highlight
@@ -774,7 +775,7 @@ exchange | Preview the whole HTTP exchange(request and response)
 * `rest-client.disableAddingHrefLinkForLargeResponse`: Controls whether to add href link in previewed response for response whose size is larger than limit specified by `rest-client.largeResponseSizeLimitInMB`. (Default is __true__)
 * `rest-client.largeResponseBodySizeLimitInMB`: Set the response body size threshold of MB to identify whether a response is a so-called 'large response', only used when `rest-client.disableHighlightResponseBodyForLargeResponse` and/or `rest-client.disableAddingHrefLinkForLargeResponse` is set to true. (Default is __5__)
 * `rest-client.previewColumn`: Response preview column option. 'current' for previewing in the column of current request file. 'beside' for previewing at the side of the current active column and the side direction depends on `workbench.editor.openSideBySideDirection` setting, either right or below the current editor column. (Default is __beside__)
-* `rest-client.previewResponsePanelTakeFocus`: Preview response panel will take focus after receiving response. (Default is __True__)
+* `rest-client.previewResponsePanelTakeFocus`: Controls whether the response preview remains the focused editor after it is shown. When enabled, the response editor group is locked so later file opens do not replace the preview. (Default is __True__)
 * `rest-client.formParamEncodingStrategy`: Form param encoding strategy for request body of _x-www-form-urlencoded_. `automatic` for detecting encoding or not automatically and do the encoding job if necessary. `never` for treating provided request body as is, no encoding job will be applied. `always` for only use for the scenario that `automatic` option not working properly, e.g., some special characters(`+`) are not encoded correctly. (Default is __automatic__)
 * `rest-client.addRequestBodyLineIndentationAroundBrackets`: Add line indentation around brackets(`{}`, `<>`, `[]`) in request body when pressing enter. (Default is __true__)
 * `rest-client.decodeEscapedUnicodeCharacters`: Decode escaped unicode characters in response body. (Default is __false__)

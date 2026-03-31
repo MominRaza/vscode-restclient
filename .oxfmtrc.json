@@ -13,5 +13,5 @@
       }
     }
   ],
-  "ignorePatterns": ["README.md"]
+  "ignorePatterns": ["README.md", "CHANGELOG.md"]
 }
